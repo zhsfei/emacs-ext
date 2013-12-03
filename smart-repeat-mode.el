@@ -1,6 +1,6 @@
 ;;; 
 
-;; Filename: smart-repeat-command.el
+;; Filename: smart-repeat-mode.el
 ;; Description: Support multi repeat command
 ;; Author: <zhsfei@gmail.com>
 ;; Maintainer: zhsfei
