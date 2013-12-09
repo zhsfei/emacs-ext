@@ -40,12 +40,18 @@
 ;;       )
 ;;     )
 
+;; (smart-repeat-define-alist  '("\C-ce" "\C-ca") 
+;;     '((("e" "n") end-of-defun    ) 
+;;       (("a"  "p")   beginning-of-defun)) )
+
 ;; example 2
 ;; (smart-repeat-define-alist '("\M-p" "\M-n")
 ;;                            '(
+;;                              ("\M-p" backward-paragraph)
 ;;                              ("p" backward-paragraph)
 ;;                              ("n" forward-paragraph)
-;;                              ) t)
+;;                              ("\M-n" forward-paragraph)
+;;                              ) )
 
 
 
@@ -61,23 +67,23 @@
   (push last-command-event unread-command-events) 
   (message "repeat-mode off"))
 
-(unless smart-repeat-keymap 
+
+(setq smart-repeat-keymap nil)
+(unless smart-repeat-keymap
   (setq smart-repeat-keymap (make-keymap))
-  ;; (setq smart-repeat-keymap (make-sparse-keymap))
   (set-char-table-range (nth 1 smart-repeat-keymap) t 'smart-repeat-close-mode) 
-  (suppress-keymap smart-repeat-keymap)
+  (define-key smart-repeat-keymap "\e" 'ESC-prefix) 
+  (suppress-keymap smart-repeat-keymap )
 )
 
 
 (defun smart-repeat-undefine-last-alist(old-key-alist) 
   (dolist (key old-key-alist) 
     (let ((key-value (car key))) 
-      (if (listp key-value)
+      (if (listp key-value) 
           (dolist (one-key key-value) 
             (define-key smart-repeat-keymap one-key  'smart-repeat-close-mode))
-
-        (define-key smart-repeat-keymap key-value  'smart-repeat-close-mode))
-)))
+        (define-key smart-repeat-keymap key-value  'smart-repeat-close-mode)))))
 
 
 
@@ -86,14 +92,14 @@
     (setq fun-value (car fun-value))) 
   (define-key smart-repeat-keymap key-value  fun-value))
 
-(defun smart-repeat-define-internal-alist-key (key-alist key-fun)
-  (dolist  (one-key key-alist)
+(defun smart-repeat-define-internal-alist-key (key-alist key-fun) 
+  (dolist  (one-key key-alist) 
     (smart-repeat-define-internal-one-key one-key key-fun)))
 
 (defun smart-repeat-define-internal (key-alist) 
   (dolist (key key-alist) 
     (let ((fun-value (cdr key)) 
-          (key-value (car key)))
+          (key-value (car key))) 
       (if (listp key-value) 
           (smart-repeat-define-internal-alist-key key-value fun-value) 
         (smart-repeat-define-internal-one-key key-value fun-value)))))
@@ -106,22 +112,21 @@
 
 
 
-(defun smart-repeat-check-alist-last (key-or-alist event)
-  (let  (foundp )
+(defun smart-repeat-check-alist-last (key-or-alist event) 
+  (let  (foundp ) 
     (dolist (akey key-or-alist) 
       (when (eq event  (smart-repeat--get-keychar akey)) 
         (setq foundp t)))
     foundp))
 
-(defun smart-repeat-check-akey-last (key-or-alist event)
+(defun smart-repeat-check-akey-last (key-or-alist event) 
   (if (eq event  (smart-repeat--get-keychar key-or-alist)) 
       t
     nil))
 
-(defun smart-repeat-check-last-command (alist)
+(defun smart-repeat-check-last-command (alist) 
   (let ( foundFlag-p (event last-command-event) key-or-alist) 
     (setq foundFlag-p nil )
-
     (while (and (not foundFlag-p) 
                 (not (null alist))) 
       (setq key-or-alist (caar alist) ) 
@@ -130,7 +135,7 @@
         (setq foundFlag-p (smart-repeat-check-akey-last key-or-alist event)))
       ;; (setq key  (smart-repeat--get-keychar (caar alist)))
       (when ;; (equal key event)
-          (setq foundFlag-p t )
+          (setq foundFlag-p t ) 
         (push last-command-event unread-command-events)) 
       (setq alist (cdr alist)))))
 
@@ -159,9 +164,10 @@
   (smart-repeat-define-internal  key-alist) 
   (setq smart-repeat-old-key-alist key-alist) 
   (when push-back-read 
-    (smart-repeat-check-last-command key-alist))
-  (smart-repeat-mode 1)
-)
+    (smart-repeat-check-last-command key-alist)) 
+  (smart-repeat-mode 1))
+
+
 (defun smart-repeat-define-key ( key-set alist back-unread keymap) 
   (lexical-let 
       ((key-alist alist) 
@@ -170,8 +176,7 @@
       (lambda () 
         "smart-repeat-define-key  " 
         (interactive) 
-        (smart-repeat-process-multi-command key-alist push-back-read))))
-)
+        (smart-repeat-process-multi-command key-alist push-back-read)))))
 
 
 
