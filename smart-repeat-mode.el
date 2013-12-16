@@ -40,19 +40,11 @@
 ;;       )
 ;;     )
 
+;; example 2
+
 ;; (smart-repeat-define-alist  '("\C-ce" "\C-ca") 
 ;;     '((("e" "n") end-of-defun    ) 
 ;;       (("a"  "p")   beginning-of-defun)) )
-
-;; example 2
-;; (smart-repeat-define-alist '("\M-p" "\M-n")
-;;                            '(
-;;                              ("\M-p" backward-paragraph)
-;;                              ("p" backward-paragraph)
-;;                              ("n" forward-paragraph)
-;;                              ("\M-n" forward-paragraph)
-;;                              ) )
-
 
 
 
@@ -68,11 +60,11 @@
   (message "repeat-mode off"))
 
 
-(setq smart-repeat-keymap nil)
+
 (unless smart-repeat-keymap
+
   (setq smart-repeat-keymap (make-keymap))
-  (set-char-table-range (nth 1 smart-repeat-keymap) t 'smart-repeat-close-mode) 
-  (define-key smart-repeat-keymap "\e" 'ESC-prefix) 
+  (set-char-table-range (nth 1 smart-repeat-keymap) nil 'smart-repeat-close-mode) 
   (suppress-keymap smart-repeat-keymap )
 )
 
@@ -119,6 +111,15 @@
         (setq foundp t)))
     foundp))
 
+
+(defun smart-repeat-check-akey-last-base-key (key-or-alist event) 
+  (let  ( (base-key (event-basic-type event) )
+          )
+  (if (eq base-key  (smart-repeat--get-keychar key-or-alist)) 
+      t
+    nil))
+)
+
 (defun smart-repeat-check-akey-last (key-or-alist event) 
   (if (eq event  (smart-repeat--get-keychar key-or-alist)) 
       t
@@ -133,18 +134,24 @@
       (if (listp key-or-alist) 
           (setq foundFlag-p (smart-repeat-check-alist-last key-or-alist event)) 
         (setq foundFlag-p (smart-repeat-check-akey-last key-or-alist event)))
-      ;; (setq key  (smart-repeat--get-keychar (caar alist)))
-      (when ;; (equal key event)
+      (when foundFlag-p
           (setq foundFlag-p t ) 
-        (push last-command-event unread-command-events)) 
+        (push last-command-event unread-command-events))
+      (unless foundFlag-p
+        (setq foundFlag-p (smart-repeat-check-akey-last-base-key key-or-alist event))
+        (when
+        (push (character-to-event (event-basic-type event)) unread-command-events)
+        ))
       (setq alist (cdr alist)))))
 
 (define-minor-mode smart-repeat-mode "" 
   nil
-  " sRepeatMode"
+  " sRepeat"
   smart-repeat-keymap 
   :global t 
-  :after-hook)
+  :after-hook ;; (message ;; "sRepeat on"
+              ;;          )
+  )
 
 
 (defun smart-repeat-define-alist ( key-alist fun-alist &optional back-unread keymap) 
@@ -160,7 +167,8 @@
 
 (defun smart-repeat-process-multi-command (key-alist push-back-read) 
   (if smart-repeat-old-key-alist 
-      (smart-repeat-undefine-last-alist smart-repeat-old-key-alist)) 
+      (smart-repeat-undefine-last-alist smart-repeat-old-key-alist))
+  
   (smart-repeat-define-internal  key-alist) 
   (setq smart-repeat-old-key-alist key-alist) 
   (when push-back-read 
@@ -175,10 +183,19 @@
     (define-key keymap key-set 
       (lambda () 
         "smart-repeat-define-key  " 
-        (interactive) 
-        (smart-repeat-process-multi-command key-alist push-back-read)))))
+        (interactive)
+          (smart-repeat-process-multi-command key-alist push-back-read))
+
+)))
+
+(defun test-event()
+(interactive)
+(print last-command-event)
+
+)
 
 
+(global-set-key "\C-c\M-p" 'test-event)
 
 
 (provide 'smart-repeat-mode)
