@@ -188,16 +188,6 @@
 
 )))
 
-(defun test-event()
-(interactive)
-(print last-command-event)
-
-)
-
-
-(global-set-key "\C-c\M-p" 'test-event)
-
-
 (provide 'smart-repeat-mode)
 
 
