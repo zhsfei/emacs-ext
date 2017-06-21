@@ -26,6 +26,7 @@
 ;;   And add to .emacs: (require 'smart-kill-mode)
 
 
+;; test
 (require 'thingatpt)
 
 
